@@ -13,12 +13,13 @@ svgPolygon x p1 p2 p3 p4 p5 y =
 svgAll :: String 
 svgAll = svgBegin 1920 1080 ++
 -- x(largura)
--- p1 ( vertice direita lateral cima)
+-- p1 ( vertice direita lateral cima) 
 -- p2 ( vertice direita lateral baixo)
 -- p3 ( vertice baixo)
 -- p4 (vertice esquerda lateral baixo)
 -- p5 (vertice esquerda lateral cima)
     svgPolygon 300 (150,225) (280,75) (280,0) (150,75) (20,225) 20 ++
+    svgPolygon 300 (150,525) (280,75) (280,0) (150,75) (20,225) 20 ++
     svgEnd
 
 main ::IO ()
