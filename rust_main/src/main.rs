@@ -1,24 +1,23 @@
 use std::{fs::File, io::Write};
 use rand::prelude::*;
 
-const POLIGON_WIDTH: f32 = 123.0;
-const POLYGON_HEIGHT: f32 = 80.0;
-const RADIUS: f32 = 10.0;
-const BORDER: f32 = 20.0;
-
 #[derive(Clone,Copy)]
 struct Coordenadas{
     x: f32,
     y: f32,
+    width: f32,
+    height: f32,
+    radius: f32,
+    border: f32
 }
 
 impl Coordenadas {
     fn new_x(&mut self){
         if self.x > 1920.0{
-            self.x = self.x - (POLIGON_WIDTH + RADIUS) ;
+            self.x = self.x - (self.width + self.height) ;
         }
         else{
-            self.x = self.x + (POLIGON_WIDTH + RADIUS) ;
+            self.x = self.x + (self.width + self.border) ;
         }
     }
 }
@@ -30,75 +29,71 @@ fn end_svg() -> String{
     String::from("</svg>")
 }
 
-fn create_polygon(p1: Coordenadas, p2: Coordenadas, p3:Coordenadas, p4:Coordenadas, p5: Coordenadas, p6: Coordenadas) -> String{
+fn create_polygon(p1: Coordenadas) -> String{
     format!("<path d='M {} {} a {} {} 0 0 1 {} 0
     l {} {} a {} {} 0 0 1 {} {}
-    l {} {} a {} {} 0 0 1 {} {}
+    l 0 {} a {} {} 0 0 1 {} {}
     l {} {} a {} {} 0 0 1 {} 0
     l {} {} a {} {} 0 0 1 {} {}
-    l {} {} a {} {} 0 0 1 {} {}
+    l 0 {} a {} {} 0 0 1 {} {}
     z' style='fill:black;stroke:yellow;stroke-width:{};fill-rule:nonzero;stroke-linejoin:round;stroke-linecap:round;'/>\n",
-    p1.x, p1.y, RADIUS, RADIUS, RADIUS,
-    p2.x, p2.y, RADIUS, RADIUS, RADIUS/2.0, RADIUS * 0.866,
-    p3.x, p3.y, RADIUS, RADIUS, -RADIUS/2.0, RADIUS * 0.866,
-    p4.x, p4.y, RADIUS, RADIUS, -RADIUS,
-    p5.x, p5.y, RADIUS, RADIUS, -RADIUS/2.0, -RADIUS * 0.866,
-    p6.x, p6.y, RADIUS, RADIUS, RADIUS/2.0, -RADIUS * 0.866, BORDER)
+    p1.x, p1.y, p1.radius, p1.radius, p1.radius,
+    p1.width, p1.height, p1.radius, p1.radius, p1.radius/2.0, p1.radius * 0.866,
+    p1.height * 2.0, p1.radius, p1.radius, -(p1.radius/2.0), p1.radius * 0.866,
+    -(p1.width), p1.height, p1.radius, p1.radius, -(p1.radius),
+    -(p1.width), -(p1.height), p1.radius, p1.radius, -(p1.radius/2.0), -(p1.radius * 0.866),
+    -(p1.height * 2.0), p1.radius, p1.radius, (p1.radius/2.0), -(p1.radius * 0.866), p1.border)
 
 }
 
 fn horizontal_line(coord: Coordenadas) -> Vec<String>{
     let mut line: Vec<String> = Vec::new();
-    let mut x = coord.x;
+    let mut coord_aux = coord.clone();
     loop {
-        if x > 1920.0 + POLIGON_WIDTH {
+        if coord_aux.x > 1920.0 + coord.width {
             break;
         }
-        line.push(create_polygon(Coordenadas { x: x, y: coord.y }, Coordenadas { x:POLIGON_WIDTH, y:POLYGON_HEIGHT },
-            Coordenadas { x: 0.0, y: POLYGON_HEIGHT * 2.0 }, Coordenadas { x: -POLIGON_WIDTH, y: POLYGON_HEIGHT }, Coordenadas { x: -POLIGON_WIDTH, y: -POLYGON_HEIGHT }, 
-            Coordenadas { x: 0.0, y: -POLYGON_HEIGHT* 2.0 }));
+        line.push(create_polygon(coord_aux));
 
-        x = x + ((POLIGON_WIDTH * 2.0 ) + (RADIUS * 1.866)) + BORDER;
+        coord_aux.x = coord_aux.x + ((coord.width * 2.0 ) + (coord.radius * 1.866)) + coord.border;
     }
 
-    x = coord.x - ((POLIGON_WIDTH * 2.0 ) + (RADIUS  * 1.866) + BORDER ) ;
+    coord_aux.x = coord.x - ((coord.width * 2.0 ) + (coord.radius  * 1.866) + coord.border );
     loop {
-        if x < (0.0 - POLIGON_WIDTH ){
+        if coord_aux.x < (0.0 - coord.width ){
             break;
         }
-        line.push(create_polygon(Coordenadas { x: x, y: coord.y }, Coordenadas { x:POLIGON_WIDTH, y:POLYGON_HEIGHT },
-            Coordenadas { x: 0.0, y: POLYGON_HEIGHT * 2.0 }, Coordenadas { x: -POLIGON_WIDTH, y: POLYGON_HEIGHT }, Coordenadas { x: -POLIGON_WIDTH, y: -POLYGON_HEIGHT }, 
-            Coordenadas { x: 0.0, y: -POLYGON_HEIGHT* 2.0 }));
-        x = x - ((POLIGON_WIDTH * 2.0 ) + RADIUS + RADIUS * 0.866 + BORDER);
+        line.push(create_polygon(coord_aux));
+        coord_aux.x = coord_aux.x - ((coord.width * 2.0 ) + ( coord.radius* 1.866) + coord.border);
     }
     line
 }   
 
-fn vertical_lines(mut coord: Coordenadas) -> Vec<Vec<String>> {
+fn vertical_lines(coord: Coordenadas) -> Vec<Vec<String>> {
     let mut lines: Vec<Vec<String>> = Vec::new();
-    let mut height = coord.y;
-    let mut initial_coord = coord.clone();
+    let mut coord_aux = coord.clone();
     loop {
-        if height > 1080.0 + (POLYGON_HEIGHT * 3.0) {
+        if coord_aux.y > 1080.0 + (coord.height * 3.0) {
             break;
         }
-        lines.push(horizontal_line(Coordenadas { x: coord.x, y: height }));
+        lines.push(horizontal_line(coord_aux));
 
-        height = height + POLYGON_HEIGHT * 3.0 + RADIUS;
-        coord.new_x(); 
+        coord_aux.y = coord_aux.y + coord.height * 3.0 + coord.radius;
+        coord_aux.new_x(); 
     }
 
-    height = coord.y -( POLYGON_HEIGHT * 3.0 + RADIUS);
-    initial_coord.new_x();
+    coord_aux = coord.clone();
+    coord_aux.y = coord.y -( coord.height * 3.0 + coord.radius + (coord.border/2.0));
+    coord_aux.new_x();
 
     loop {
-        if height < (0.0 - (POLYGON_HEIGHT * 3.0)) {
+        if coord_aux.y < (0.0 - (coord.height * 3.0)) {
             break;
         }
 
-        lines.push(horizontal_line(Coordenadas { x: initial_coord.x, y: height }));
-        height = height - (POLYGON_HEIGHT * 3.0 + RADIUS);
-        initial_coord.new_x();
+        lines.push(horizontal_line(coord_aux));
+        coord_aux.y= coord_aux.y - (coord.height * 3.0 + coord.radius);
+        coord_aux.new_x();
     }
 
     lines
@@ -107,13 +102,23 @@ fn vertical_lines(mut coord: Coordenadas) -> Vec<Vec<String>> {
 fn main() {
     let mut file = File::create("polygon.svg").unwrap();
     
+    let height = rand::thread_rng().gen_range(20.0..300.0);
+    let width = rand::thread_rng().gen_range(height..400.0);
+
+    println!("Coor {} {}",height,width);
     let coord = Coordenadas{
-        x : rand::thread_rng().gen_range(POLIGON_WIDTH..1920.0),
-        y : rand::thread_rng().gen_range(POLYGON_HEIGHT..1080.0),
+        x : rand::thread_rng().gen_range(0.0..1920.0),
+        y : rand::thread_rng().gen_range(0.0..1080.0),
+        height: height,
+        width: width,
+        radius : 10.0,
+        border : 10.0
     };
    
+
     file.write(init_svg().as_bytes()).unwrap();
-    let lines = vertical_lines(coord);
+    
+   let lines = vertical_lines(coord);
     for line in lines{
         for l in line{
             file.write(l.as_bytes()).unwrap();
