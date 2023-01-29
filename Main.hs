@@ -46,25 +46,16 @@ svgPolygon (x, y, width, height, radius, border) = do
     ((-radius / 2) * 0.866)
     border
 
-toFloat :: Int -> Float
-toFloat x = fromIntegral x
-
-svgAll :: Int -> Int -> Int -> Int -> Int -> Int -> Int -> String
-svgAll x y w h r b distance = do
-  let n = 9
+svgAll :: Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> String
+svgAll x y w h r b distance n = do
   let polygon i = (x + i * ((w * 2) + distance), y, w, h, r, b)
   let polygonRow i = map (polygon) [0 .. n - 1]
-  let polygonLevel i = map (\(x, y, w, h, r, b) -> (x - w, y + i * (h * 3 + distance), w, h, r, b)) (polygonRow 0)
-  let polygonList i = concat (map polygonLevel [-1, 0, 1])
-
-  --deveria ficar assim mais ou menos a estrutura, fiz com três linhas
-  -- let polygons = [(x, y, w, h, r, b), (x + (w * 2) + distance, y, w, h, r, b), (x + 2 * ((w * 2) + distance), y, w, h, r, b), (x + 3 * ((w * 2) + distance), y, w, h, r, b), (x + 4 * ((w * 2) + distance), y, w, h, r, b), (x + 5 * ((w * 2) + distance), y, w, h, r, b), (x + 6 * ((w * 2) + distance), y, w, h, r, b), (x + 7 * ((w * 2) + distance), y, w, h, r, b), (x - w, y + h * 3 + distance, w, h, r, b), (x - w + (w * 2) + distance, y + h * 3 + distance, w, h, r, b), (x - w + 2 * ((w * 2) + distance), y + h * 3 + distance, w, h, r, b), (x - w + 3 * ((w * 2) + distance), y + h * 3 + distance, w, h, r, b), (x - w + 4 * ((w * 2) + distance), y + h * 3 + distance, w, h, r, b), (x - w + 5 * ((w * 2) + distance), y + h * 3 + distance, w, h, r, b), (x - w + 6 * ((w * 2) + distance), y + h * 3 + distance, w, h, r, b), (x - w + 7 * ((w * 2) + distance), y + h * 3 + distance, w, h, r, b), (x - w, y - h * 3 - distance, w, h, r, b), (x - w + (w * 2) + distance, y - h * 3 - distance, w, h, r, b), (x - w + 2 * ((w * 2) + distance), y - h * 3 - distance, w, h, r, b), (x - w + 3 * ((w * 2) + distance), y - h * 3 - distance, w, h, r, b), (x - w + 4 * ((w * 2) + distance), y - h * 3 - distance, w, h, r, b), (x - w + 5 * ((w * 2) + distance), y - h * 3 - distance, w, h, r, b), (x - w + 6 * ((w * 2) + distance), y - h * 3 - distance, w, h, r, b), (x - w + 7 * ((w * 2) + distance), y - h * 3 - distance, w, h, r, b)]
-
-  -- let polygonsAsFloat = map (\(x, y, w, h, r, b) -> (toFloat x, toFloat y, toFloat w, toFloat h, toFloat r, toFloat b)) polygonList
+  let polygonLevel i = map (\(x, y, w, h, r, b) -> ((x + i * w) - (2 * n * w), y + i * (h * 3 + distance), w, h, r, b)) (polygonRow n)
+  let polygonList i = concat (map polygonLevel [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 
   let polygonAsFloat = map (\(x, y, w, h, r, b) -> (fromIntegral x, fromIntegral y, fromIntegral w, fromIntegral h, fromIntegral r, fromIntegral b)) (polygonList n)
 
-  svgBegin 400 400
+  svgBegin 1920 1080
     ++ concat (map svgPolygon polygonAsFloat)
     ++ svgEnd
 
@@ -78,7 +69,8 @@ main = do
   let width = head (randomNumber number_randgen height 40)
 
   let distance = head (randomNumber number_randgen 15 20)
+  let quantidade = head (randomNumber number_randgen 100 300)
 
   let x = head (randomNumber number_randgen 0 (width * 2))
-  let y = head (randomNumber number_randgen 0 400)
-  writeFile "polygon.svg" (svgAll x y width height 2 5 distance)
+  let y = head (randomNumber number_randgen 0 0)
+  writeFile "polygon.svg" (svgAll x y width height 2 5 distance quantidade)
