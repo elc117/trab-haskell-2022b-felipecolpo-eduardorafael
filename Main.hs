@@ -3,7 +3,7 @@ import System.Random
 import Text.Printf
 
 svgBegin :: Float -> Float -> String
-svgBegin w h = printf "<svg width='%.2f' height='%.2f' xmlns='http://www.w3.org/2000/svg'>" w h
+svgBegin w h = printf "<svg width='%.2f' height='%.2f' xmlns='http://www.w3.org/2000/svg'><rect width='100%%' height='100%%' fill='black'/>" w h
 
 svgEnd :: String
 svgEnd = "</svg>"
